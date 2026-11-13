@@ -21,7 +21,20 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 24
+
+      - name: Diagnostico
+        env:
+          T: ${{ secrets.HYDRA_REFRESH_TOKEN }}
+          G: ${{ vars.HYDRA_GAME_TITLE }}
+          S: ${{ vars.HYDRA_SECONDS_PER_RUN }}
+        run: |
+          echo "version=$(node -v)"
+          echo "token_len=${#T}"
+          echo "titulo=[$G]"
+          echo "segundos=[$S]"
+          ls -la
+          test -f farm.js && echo "farm.js: OK" || echo "farm.js: FALTA"
 
       - name: Sumar horas
         env:
