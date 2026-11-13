@@ -1,0 +1,42 @@
+name: farm
+
+on:
+  schedule:
+    - cron: "*/10 * * * *"
+  workflow_dispatch:
+
+concurrency:
+  group: farm
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  farm:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Sumar horas
+        env:
+          HYDRA_REFRESH_TOKEN: ${{ secrets.HYDRA_REFRESH_TOKEN }}
+          GAME_TITLE: ${{ vars.HYDRA_GAME_TITLE }}
+          SECONDS_PER_RUN: ${{ vars.HYDRA_SECONDS_PER_RUN }}
+        run: node farm.js
+
+      - name: Keepalive
+        run: |
+          if [ ! -f .keepalive ] || [ -n "$(find .keepalive -mtime +30)" ]; then
+            date -u > .keepalive
+            git config user.name "farm-bot"
+            git config user.email "farm-bot@users.noreply.github.com"
+            git add .keepalive
+            git commit -m "keepalive"
+            git push
+          fi
